@@ -54,7 +54,7 @@ func Login(c *fiber.Ctx) error {
  
 	c.BodyParser(&requestBody)
 
-	err := db.FindOne(context.TODO(), bson.D{{"email", requestBody.Email}}).Decode(&result)
+	err := db.FindOne(context.TODO(), bson.D{{Key: "email", Value: requestBody.Email}}).Decode(&result)
 	if err != nil {
 		return c.JSON(WebResponse{
 			Code: 401,

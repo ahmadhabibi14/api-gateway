@@ -26,7 +26,7 @@ func init() {
 
 	// Send a ping to confirm a successful connection
 	var result bson.M
-	err = client.Database("service-user").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Decode(&result)
+	err = client.Database("service-user").RunCommand(context.TODO(), bson.D{{Key: "ping", Value: 1}}).Decode(&result)
 	if err != nil {
 		panic(err)
 	}
