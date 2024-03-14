@@ -9,7 +9,9 @@ import (
 )
 
 func init() {
+	config.LoadEnv()
 	config.GetMongoDatabase()
+	config.GetPostgresDatabase()
 }
 
 func main() {
