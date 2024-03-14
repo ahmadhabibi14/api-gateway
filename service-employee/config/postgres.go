@@ -5,37 +5,49 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	_ "github.com/lib/pq"
 )
 
-var postgresDB *sql.DB
+var (
+  once sync.Once
+  postgresDB *sql.DB
+)
 
 func init() {
-   PostgresHost := os.Getenv("POSTGRES_HOST")
-   PostgresPort := os.Getenv("POSTGRES_HOST")
-   PostgresDB := os.Getenv("POSTGRES_HOST")
-   PostgresUser := os.Getenv("POSTGRES_HOST")
-   PostgresPassword := os.Getenv("POSTGRES_HOST")
+  once.Do(func() {
+    LoadEnv() // prevent unloaded .env file
 
-   dconn := fmt.Sprintf(
-      "postgresql://%s:%s@%s:%s/%s?sslmode=disable",
-      PostgresUser, PostgresPassword, PostgresHost, PostgresPort, PostgresDB,
-   )
+    PostgresHost := os.Getenv("POSTGRES_HOST")
+    PostgresDbName := os.Getenv("POSTGRES_DB")
+    PostgresUser := os.Getenv("POSTGRES_USER")
+    PostgresPassword := os.Getenv("POSTGRES_PASSWORD")
 
-   db, err := sql.Open("postgres", dconn)
-   if err != nil {
+    PostgresInfo := fmt.Sprintf(
+      "host=%v user=%v password=%v dbname=%v sslmode=disable",
+      PostgresHost, PostgresUser, PostgresPassword, PostgresDbName,
+    )
+
+    db, err := sql.Open("postgres", PostgresInfo)
+    if err != nil {
       panic(err)
-   }
+    }
 
-   postgresDB = db
+    db.SetMaxIdleConns(10)
+    db.SetMaxOpenConns(100)
+    db.SetConnMaxIdleTime(5 * time.Minute)
+    db.SetConnMaxLifetime(60 * time.Minute)
+
+    postgresDB = db
+  })
 }
 
 func NewPostgresContext() (context.Context, context.CancelFunc) {
-   return  context.WithTimeout(context.Background(), 10*time.Second)
+  return context.WithTimeout(context.Background(), 10*time.Second)
 }
 
 func GetPostgresDatabase() *sql.DB {
-   return postgresDB
+  return postgresDB
 }

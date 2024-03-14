@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"context"
-	"errors"
 	"service-user/helpers"
 	"service-user/model"
 
@@ -10,7 +8,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 type WebResponse struct {
@@ -21,20 +18,22 @@ type WebResponse struct {
 
 func Register(c *fiber.Ctx) error {
 	var requestBody model.User
-	db := config.GetMongoDatabase().Collection("user")
+
+	db := config.GetPostgresDatabase()
 
 	requestBody.Id = uuid.New().String()
 
-	ctx, cancel := config.NewMongoContext()
+	ctx, cancel := config.NewPostgresContext()
 	defer cancel()
 
 	c.BodyParser(&requestBody)
 
-	_, err := db.InsertOne(ctx, bson.M{
-		"email": requestBody.Email,
-		"password": helpers.HashPassword([]byte(requestBody.Password)),
-	})
-
+	query := `INSERT INTO users (id, email, password) VALUES ($1, $2, $3)`
+	_, err := db.ExecContext(ctx, query,
+		requestBody.Id,
+		requestBody.Email,
+		helpers.HashPassword([]byte(requestBody.Password)),
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -42,25 +41,42 @@ func Register(c *fiber.Ctx) error {
 	return c.JSON(WebResponse{
 		Code: 201,
 		Status: "OK",
-		Data: requestBody.Email,
+		Data: struct{
+			Email string `json:"email"`
+		} {
+			Email: requestBody.Email,
+		},
 	})
 }
 
 func Login(c *fiber.Ctx) error {
-	db := config.GetMongoDatabase().Collection("user")
-
 	var requestBody model.User
 	var result model.User
+
+	db := config.GetPostgresDatabase()
  
 	c.BodyParser(&requestBody)
 
-	err := db.FindOne(context.TODO(), bson.D{{Key: "email", Value: requestBody.Email}}).Decode(&result)
+	ctx, cancel := config.NewPostgresContext()
+	defer cancel()
+
+	query := `SELECT id, email, password FROM users WHERE email = $1 LIMIT 1`
+	rows, err := db.QueryContext(ctx, query, requestBody.Email)
 	if err != nil {
 		return c.JSON(WebResponse{
 			Code: 401,
 			Status: "BAD_REQUEST",
-			Data: err.Error(),
+			Data: "user not found",
 		})
+	}
+
+	defer rows.Close()
+	if rows.Next() {
+		rows.Scan(
+			&result.Id,
+			&result.Email,
+			&result.Password,
+		)
 	}
 
 	checkPassword := helpers.ComparePassword([]byte(result.Password), []byte(requestBody.Password))
@@ -68,7 +84,7 @@ func Login(c *fiber.Ctx) error {
 		return c.JSON(WebResponse{
 			Code: 401,
 			Status: "BAD_REQUEST",
-			Data: errors.New("invalid password").Error(),
+			Data: "invalid password",
 		})
 	}
 
@@ -83,7 +99,13 @@ func Login(c *fiber.Ctx) error {
 		Code: 200,
 		Status: "OK",
 		AccessToken: access_token,
-		Data: result,
+		Data: struct{
+			Id string `json:"id"`
+			Email string `json:"email"`
+		} {
+			Id: result.Id,
+			Email: result.Email,
+		},
 	})
 }
 

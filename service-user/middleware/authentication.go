@@ -1,14 +1,13 @@
 package middleware
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
 	"service-user/config"
 	"service-user/helpers"
 	"service-user/model"
 
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func Authentication(c *fiber.Ctx) error {
@@ -27,10 +26,15 @@ func Authentication(c *fiber.Ctx) error {
 	fmt.Println(checkToken, "CEKKKK" ,checkToken["email"])
 
 	var user model.User
-	db := config.GetMongoDatabase().Collection("user")
 
-	err = db.FindOne(context.TODO(), bson.D{{"email", checkToken["email"]}}).Decode(&user)
-	if err != nil {
+	db := config.GetPostgresDatabase()
+	
+	ctx, cancel := config.NewPostgresContext()
+	defer cancel()
+
+	query := `SELECT email FROM users WHERE email = $1 LIMIT = 1`
+	rows := db.QueryRowContext(ctx, query, checkToken["email"])
+	if rows.Scan(&user.Email) == sql.ErrNoRows {
 		fmt.Println(err, "Error fetching user from database")
 		return c.Status(401).SendString("Invalid token: User not found")
 	}
