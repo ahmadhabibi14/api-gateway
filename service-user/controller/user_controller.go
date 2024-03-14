@@ -35,10 +35,14 @@ func Register(c *fiber.Ctx) error {
 		helpers.HashPassword([]byte(requestBody.Password)),
 	)
 	if err != nil {
-		panic(err)
+		return c.Status(fiber.StatusBadRequest).JSON(WebResponse{
+			Code: 401,
+			Status: "BAD_REQUEST",
+			Data: "user already exist",
+		})
 	}
 
-	return c.JSON(WebResponse{
+	return c.Status(fiber.StatusCreated).JSON(WebResponse{
 		Code: 201,
 		Status: "OK",
 		Data: struct{
@@ -63,7 +67,7 @@ func Login(c *fiber.Ctx) error {
 	query := `SELECT id, email, password FROM users WHERE email = $1 LIMIT 1`
 	rows, err := db.QueryContext(ctx, query, requestBody.Email)
 	if err != nil {
-		return c.JSON(WebResponse{
+		return c.Status(fiber.StatusBadRequest).JSON(WebResponse{
 			Code: 401,
 			Status: "BAD_REQUEST",
 			Data: "user not found",
@@ -81,7 +85,7 @@ func Login(c *fiber.Ctx) error {
 
 	checkPassword := helpers.ComparePassword([]byte(result.Password), []byte(requestBody.Password))
 	if !checkPassword {
-		return c.JSON(WebResponse{
+		return c.Status(fiber.StatusBadRequest).JSON(WebResponse{
 			Code: 401,
 			Status: "BAD_REQUEST",
 			Data: "invalid password",
@@ -90,7 +94,7 @@ func Login(c *fiber.Ctx) error {
 
 	access_token := helpers.SignToken(requestBody.Email)
 
-	return c.JSON(struct{
+	return c.Status(fiber.StatusOK).JSON(struct{
 		Code int 
 		Status string
 		AccessToken string
@@ -110,5 +114,5 @@ func Login(c *fiber.Ctx) error {
 }
 
 func Auth(c *fiber.Ctx) error {
-	return c.JSON("OK")
+	return c.Status(fiber.StatusOK).JSON("OK")
 }
