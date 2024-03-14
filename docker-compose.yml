@@ -5,11 +5,23 @@ services:
     image: postgres:16
     container_name: apigateway-db
     environment:
-      - POSTGRES_USER=habi
-      - POSTGRES_PASSWORD=habi123
-      - POSTGRES_DB=apigateway
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
     ports:
       - 5432:5432
     volumes:
       - ./_docker-data/postgres:/var/lib/postgresql/data
     restart: on-failure
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - 3000:3000
+  service-user:
+    build: ./service-user
+    ports:
+      - 3001:3001
+  service-employee:
+    build: ./service-employee
+    ports:
+      - 3002:3002
