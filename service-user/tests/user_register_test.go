@@ -5,27 +5,27 @@ import (
 	"encoding/json"
 	"io"
 	"net/http/httptest"
+	"os"
 	"service-user/controller"
 	"service-user/model"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
 
 func init() {
-	err := godotenv.Load("../.env")
-	if err != nil {
-		panic("Cannot load .env file")
-	}
+	os.Setenv("POSTGRES_HOST", "127.0.0.1")
+	os.Setenv("POSTGRES_DB", "apigateway")
+	os.Setenv("POSTGRES_USER", "habi")
+	os.Setenv("POSTGRES_PASSWORD", "habi123")
 }
 
 func TestUserRegister(t *testing.T) {
 	app := fiber.New()
 	app.Post("/user/register", controller.Register)
 
-	t.Run("Success", func(t *testing.T) {
+	t.Run("RegisterSuccess", func(t *testing.T) {
 		payload := model.User{
 			Email: "satoru99@proton.me",
 			Password: "gojo12345678",
@@ -36,7 +36,7 @@ func TestUserRegister(t *testing.T) {
 		}
 
 		req := httptest.NewRequest(fiber.MethodPost, "/user/register", bytes.NewBuffer(jsonData))
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, 1000000000000)
 		if err != nil {
 			t.Error(err.Error())
 		}
@@ -47,7 +47,7 @@ func TestUserRegister(t *testing.T) {
 		t.Logf(`Response: %v`, string(body))
 	})
 
-	t.Run("Failed", func(t *testing.T) {
+	t.Run("RegisterFailed", func(t *testing.T) {
 		payload := model.User{
 			Email: "emailgakada@proton.me",
 			Password: "bukanpassword",
@@ -58,7 +58,7 @@ func TestUserRegister(t *testing.T) {
 		}
 
 		req := httptest.NewRequest(fiber.MethodPost, "/user/register", bytes.NewBuffer(jsonData))
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, 1000000000000)
 		if err != nil {
 			t.Error(err.Error())
 		}

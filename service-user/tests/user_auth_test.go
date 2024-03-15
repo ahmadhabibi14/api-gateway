@@ -3,21 +3,22 @@ package tests
 import (
 	"io"
 	"net/http/httptest"
+	"os"
 	"service-user/controller"
 	"service-user/middleware"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
 
 func init() {
-	err := godotenv.Load("../.env")
-	if err != nil {
-		panic("Cannot load .env file")
-	}
+	os.Setenv("POSTGRES_HOST", "127.0.0.1")
+	os.Setenv("POSTGRES_DB", "apigateway")
+	os.Setenv("POSTGRES_USER", "habi")
+	os.Setenv("POSTGRES_PASSWORD", "habi123")
 }
+
 
 func TestUserAuth(t *testing.T) {
 	app := fiber.New()
@@ -29,7 +30,7 @@ func TestUserAuth(t *testing.T) {
 		req := httptest.NewRequest(fiber.MethodGet, "/user/auth", nil)
 		req.Header.Set("access_token", access_token)
 
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, 1000000000000)
 		if err != nil {
 			t.Error(err.Error())
 		}
@@ -40,12 +41,12 @@ func TestUserAuth(t *testing.T) {
 		t.Logf(`Response: %v`, string(body))
 	})
 
-	t.Run("Invalid access_token", func(t *testing.T) {
+	t.Run("InvalidAccessToken", func(t *testing.T) {
 		access_token := "ini-error-haha"
 		req := httptest.NewRequest(fiber.MethodGet, "/user/auth", nil)
 		req.Header.Set("access_token", access_token)
 
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, 1000000000000)
 		if err != nil {
 			t.Error(err.Error())
 		}

@@ -8,7 +8,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 var user_uri string = "http://localhost:3001/user"
@@ -20,8 +19,10 @@ type WebResponse struct {
 }
 
 func CreateEmployee(c *fiber.Ctx) error {
-	db := config.GetMongoDatabase().Collection("employee")
+	db := config.GetPostgresDatabase()
 	var requestBody model.Employee
+
+	_ = db
 
 	c.BodyParser(&requestBody)
 
@@ -59,16 +60,10 @@ func CreateEmployee(c *fiber.Ctx) error {
 		c.Status(401).SendString("invalid token")
 	}
 
-	ctx, cancel := config.NewMongoContext()
+	ctx, cancel := config.NewPostgresContext()
 	defer cancel()
 
-	_, err = db.InsertOne(ctx, bson.M{
-		"name": requestBody.Name,
-	})
-
-	if err != nil {
-		panic(err)
-	}
+	_ = ctx
 
 	return c.JSON(WebResponse{
 		Code: 201,
