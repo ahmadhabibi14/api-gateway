@@ -66,7 +66,7 @@ func Login(c *fiber.Ctx) error {
 
 	query := `SELECT id, email, password FROM users WHERE email = $1 LIMIT 1`
 	rows, err := db.QueryContext(ctx, query, requestBody.Email)
-	if err != nil {
+	if err != nil || !rows.Next() {
 		return c.Status(fiber.StatusBadRequest).JSON(WebResponse{
 			Code: 401,
 			Status: "BAD_REQUEST",
@@ -75,14 +75,12 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	defer rows.Close()
-	if rows.Next() {
-		rows.Scan(
-			&result.Id,
-			&result.Email,
-			&result.Password,
-		)
-	}
-
+	rows.Scan(
+		&result.Id,
+		&result.Email,
+		&result.Password,
+	)
+	
 	checkPassword := helpers.ComparePassword([]byte(result.Password), []byte(requestBody.Password))
 	if !checkPassword {
 		return c.Status(fiber.StatusBadRequest).JSON(WebResponse{

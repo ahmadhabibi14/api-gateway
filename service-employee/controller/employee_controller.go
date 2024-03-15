@@ -22,15 +22,17 @@ func CreateEmployee(c *fiber.Ctx) error {
 	db := config.GetPostgresDatabase()
 	var requestBody model.Employee
 
-	_ = db
-
 	c.BodyParser(&requestBody)
 
 	requestBody.Id = uuid.New().String()
 
 	access_token := c.Get("access_token")
 	if len(access_token) == 0 {
-		return c.Status(401).SendString("Invalid token: Access token missing")
+		return c.Status(fiber.StatusBadRequest).JSON(WebResponse{
+			Code: 401,
+			Status: "BAD_REQUEST",
+			Data: "Invalid token: Access token missing",
+		})
 	}
 
 	req, err := http.NewRequest("GET", user_uri + "/auth", nil)
@@ -52,20 +54,32 @@ func CreateEmployee(c *fiber.Ctx) error {
 	}
 	defer resp.Body.Close()
 
-	// Print the response
-	// fmt.Println("Response Status:", resp.Status)
-	// fmt.Println("Response Headers:", resp.Header)
-
 	if resp.Status != "200 OK" {
-		c.Status(401).SendString("invalid token")
+		return c.Status(fiber.StatusBadRequest).JSON(WebResponse{
+			Code: 401,
+			Status: "BAD_REQUEST",
+			Data: "invalid token",
+		})
 	}
 
 	ctx, cancel := config.NewPostgresContext()
 	defer cancel()
 
-	_ = ctx
+	query := `INSERT INTO employee (id, name) VALUES ($1, $2)`
+	_, err = db.ExecContext(ctx, query,
+		requestBody.Id,
+		requestBody.Name,
+	)
 
-	return c.JSON(WebResponse{
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(WebResponse{
+			Code: 401,
+			Status: "BAD_REQUEST",
+			Data: err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(WebResponse{
 		Code: 201,
 		Status: "OK",
 		Data: requestBody,

@@ -59,7 +59,7 @@ func CreateEmployee(c *fiber.Ctx) error {
 	defer resp.Body.Close()
 
 	// Check the response status code
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != fiber.StatusCreated {
 		return c.Status(fiber.StatusInternalServerError).SendString("Non-OK status code received")
 	}
 

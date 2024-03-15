@@ -11,7 +11,7 @@ import (
 
 func init() {
 	config.LoadEnv()
-	config.GetPostgresDatabase()
+	config.NewPostgresDatabase()
 }
 
 func main() {

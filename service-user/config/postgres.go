@@ -16,9 +16,9 @@ var (
   postgresDB *sql.DB
 )
 
-func init() {
-  // force to make database connection only once
+func NewPostgresDatabase() {
   once.Do(func() {
+    LoadEnv() // prevent unloaded .env file
     PostgresHost := os.Getenv("POSTGRES_HOST")
     PostgresDbName := os.Getenv("POSTGRES_DB")
     PostgresUser := os.Getenv("POSTGRES_USER")
