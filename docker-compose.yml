@@ -15,9 +15,13 @@ services:
     restart: on-failure
     networks:
       - apigateway
+    env_file:
+      - .env
   api-gateway:
     container_name: api-gateway
-    build: ./api-gateway
+    build: 
+      context: ./api-gateway
+      dockerfile: Dockerfile
     ports:
       - 3000:3000
     depends_on:
@@ -27,9 +31,13 @@ services:
       - apigateway
     expose:
       - "3000"
+    env_file:
+      - .env
   service-user:
     container_name: service-user
-    build: ./service-user
+    build: 
+      context: ./service-user
+      dockerfile: Dockerfile
     ports:
       - 3001:3001
     depends_on:
@@ -42,7 +50,9 @@ services:
       - "3001"
   service-employee:
     container_name: service-employee
-    build: ./service-employee
+    build: 
+      context: ./service-employee
+      dockerfile: Dockerfile
     ports:
       - 3002:3002
     depends_on:

@@ -13,3 +13,7 @@ services:
     volumes:
       - ./_docker-data/postgres-dev:/var/lib/postgresql/data
     restart: on-failure
+    networks:
+      - apigateway
+    env_file:
+      - .env.dev

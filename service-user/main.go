@@ -10,6 +10,7 @@ import (
 )
 
 func init() {
+	// _ = godotenv.Load("../.env.dev")
 	config.NewPostgresDatabase()
 }
 

@@ -4,22 +4,23 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http/httptest"
-	"os"
 	"service-user/config"
 	"service-user/controller"
 	"service-user/model"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
 
 func init() {
-	os.Setenv("POSTGRES_HOST", "127.0.0.1")
-	os.Setenv("POSTGRES_DB", "apigateway")
-	os.Setenv("POSTGRES_USER", "habi")
-	os.Setenv("POSTGRES_PASSWORD", "habi123")
+	err := godotenv.Load("../../.env.dev")
+	if err != nil {
+		log.Println("Cannot load .env file")
+	}
 	config.NewPostgresDatabase()
 }
 
