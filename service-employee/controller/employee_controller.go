@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var user_uri string = "http://localhost:3001/user"
+var user_uri string = "http://service-user:3001/user"
 
 type WebResponse struct {
 	Code int

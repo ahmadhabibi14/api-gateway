@@ -9,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-var user_uri string = "http://localhost:3001/user"
+var user_uri string = "http://service-user:3001/user"
 
 type UserBodyReq struct {
 	Email    string `json:"email"`

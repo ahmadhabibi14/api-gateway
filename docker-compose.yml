@@ -13,18 +13,48 @@ services:
     volumes:
       - ./_docker-data/postgres:/var/lib/postgresql/data
     restart: on-failure
+    networks:
+      - apigateway
   api-gateway:
     container_name: api-gateway
     build: ./api-gateway
     ports:
       - 3000:3000
+    depends_on:
+      - service-user
+      - service-employee
+    networks:
+      - apigateway
+    expose:
+      - "3000"
   service-user:
     container_name: service-user
     build: ./service-user
     ports:
       - 3001:3001
+    depends_on:
+      - postgres
+    networks:
+      - apigateway
+    env_file:
+      - .env
+    expose:
+      - "3001"
   service-employee:
     container_name: service-employee
     build: ./service-employee
     ports:
       - 3002:3002
+    depends_on:
+      - postgres
+      - service-user
+    networks:
+      - apigateway
+    env_file:
+      - .env
+    expose:
+      - "3002"
+
+networks:
+  apigateway:
+    driver: bridge

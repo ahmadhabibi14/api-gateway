@@ -1,17 +1,15 @@
-FROM golang:1.22.1 AS build
+FROM golang:1.22-alpine
 
 WORKDIR /app
 
 COPY go.mod go.sum ./
+
 RUN go mod download
 
-COPY ./ ./
+COPY . .
 
 RUN go build -o api-gateway .
 
+CMD ["./api-gateway"]
+
 EXPOSE 3000
-
-FROM ubuntu:20.04
-COPY --from=build /app/api-gateway /usr/local/bin
-
-CMD [ "api-gateway" ]
