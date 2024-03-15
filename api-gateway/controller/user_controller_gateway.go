@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-var user_uri string = "http://service-user:3001/user"
+var user_uri string = os.Getenv("USER_URI")
 
 type UserBodyReq struct {
 	Email    string `json:"email"`

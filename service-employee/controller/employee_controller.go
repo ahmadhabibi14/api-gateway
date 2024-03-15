@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"service-employee/config"
 	"service-employee/model"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var user_uri string = "http://service-user:3001/user"
+var user_uri string = os.Getenv("USER_URI")
 
 type WebResponse struct {
 	Code int

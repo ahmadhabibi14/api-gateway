@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-var employee_uri string = "http://service-employee:3002"
+var employee_uri string = os.Getenv("EMPLOYEE_URI")
 
 type EmployeeBodyReq struct {
 	Name string `json:"name"`
